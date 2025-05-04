@@ -10,18 +10,24 @@ login_manager = LoginManager()
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
     app = Flask(__name__)
+    # Get CORS origins from environment or use defaults
+    cors_origins = os.environ.get('CORS_ORIGINS', '').split(',') if os.environ.get('CORS_ORIGINS') else [
+        "http://localhost:3001", 
+        "http://host.docker.internal:3001",
+        "http://127.0.0.1:3001",
+        "http://frontend:3001",
+        "https://sqlgenai.com",
+        "https://www.sqlgenai.com",
+        "https://api.sqlgenai.com",
+    ]
+    
+    # Clean up any empty strings from the list
+    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+    
     # Configure CORS with specific origins
     CORS(app, 
         resources={r"/*": {
-            "origins": [
-                "http://localhost:3001", 
-                "http://host.docker.internal:3001",
-                "http://127.0.0.1:3001",
-                "http://frontend:3001",
-                "http://sqlgenai.com",
-                "http://www.sqlgenai.com",
-                "http://api.sqlgenai.com",
-            ],
+            "origins": cors_origins,
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "supports_credentials": True,
@@ -30,8 +36,8 @@ def create_app(config_name=None):
         supports_credentials=True
     )
     
-    # Register after_request handler for CORS
-    app.after_request(cors_after_request)
+    # We'll use Flask-CORS for handling CORS, so we don't need the custom after_request handler
+    # This prevents duplicate headers
     
     # Load configuration
     if config_name is None:
