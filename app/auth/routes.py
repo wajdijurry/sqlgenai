@@ -11,7 +11,7 @@ import uuid
 # Most authentication is now handled through the API routes in api/routes.py
 
 from app.utils.auth import token_required
-from app.utils.cors import add_cors_headers, cors_preflight_response
+# CORS is now handled by Apache
 
 @auth_bp.route('/profile', methods=['PUT', 'OPTIONS'])
 @token_required

@@ -1,8 +1,7 @@
 import os
 from flask import Flask, jsonify
 from flask_login import LoginManager
-from flask_cors import CORS
-from app.utils.cors import cors_after_request
+# CORS is now handled entirely at the Apache level
 
 # Initialize extensions
 login_manager = LoginManager()
@@ -10,18 +9,8 @@ login_manager = LoginManager()
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
     app = Flask(__name__)
-    # Configure CORS to allow requests from the frontend domain
-    # Use a simple configuration with just the essential settings
-    CORS(app, 
-        origins=["https://sqlgenai.com", "http://localhost:3001"],
-        supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        expose_headers=["Content-Type", "Authorization"]
-    )
-    
-    # We'll use Flask-CORS for handling CORS, so we don't need the custom after_request handler
-    # This prevents duplicate headers
+    # CORS is now handled entirely at the Apache level
+    # This prevents duplicate headers and simplifies the application
     
     # Load configuration
     if config_name is None:

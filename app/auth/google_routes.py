@@ -3,7 +3,6 @@ Google OAuth routes for SQLGenAI
 """
 from flask import Blueprint, request, redirect, url_for, jsonify, session, current_app
 from app.auth.google_auth import get_google_auth_url, handle_google_callback
-from app.utils.cors import add_cors_headers, cors_preflight_response
 
 # Create a blueprint for Google auth routes
 google_bp = Blueprint('google_auth', __name__)
@@ -11,22 +10,19 @@ google_bp = Blueprint('google_auth', __name__)
 @google_bp.route('/auth/google/login', methods=['GET', 'OPTIONS'])
 def google_login():
     """Initiate Google OAuth login flow"""
-    # Handle OPTIONS request for CORS preflight
+    # OPTIONS requests are handled by Apache
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
     
     # Get the Google authorization URL
     auth_data = get_google_auth_url()
     
     # Return the URL to the frontend
-    response = jsonify({
+    return jsonify({
         'success': True,
         'auth_url': auth_data['url'],
         'state': auth_data['state']
     })
-    
-    # Add CORS headers to the response
-    return add_cors_headers(response)
 
 @google_bp.route('/auth/google/callback', methods=['GET'])
 def google_callback():
@@ -57,28 +53,25 @@ def google_callback():
 @google_bp.route('/auth/google/token', methods=['POST', 'OPTIONS'])
 def google_token():
     """Exchange authorization code for token"""
-    # Handle OPTIONS request for CORS preflight
+    # OPTIONS requests are handled by Apache
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
     
     # Get the data from the request
     data = request.get_json()
     
     if not data or 'code' not in data or 'state' not in data:
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Missing code or state'
         }), 400
-        return add_cors_headers(response[0]), response[1]
     
     # Process the callback
     result = handle_google_callback(data['code'], data['state'])
     
     if isinstance(result, tuple):
         response, status_code = result
-        response = jsonify(response), status_code
-        return add_cors_headers(response[0]), response[1]
+        return jsonify(response), status_code
     
     # Return the result
-    response = jsonify(result)
-    return add_cors_headers(response)
+    return jsonify(result)

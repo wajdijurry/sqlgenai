@@ -4,7 +4,7 @@ import json
 import time
 import logging
 from datetime import datetime
-from app.utils.cors import add_cors_headers, cors_preflight_response
+# CORS is now handled by Apache
 
 from app.utils.db_init import db
 from app.api import api_bp
