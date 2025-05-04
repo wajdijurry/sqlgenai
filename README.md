@@ -24,8 +24,8 @@ A modern web-based SQL query generator powered by AI models (OpenAI GPT and Deep
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sqlgenai-web.git
-cd sqlgenai-web
+git clone git@github.com:wajdijurry/sqlgenai.git
+cd sqlgenai
 ```
 
 2. Create a virtual environment and activate it:
@@ -63,4 +63,4 @@ See the `docs/apache_deployment.md` file for detailed instructions on deploying 
 
 ## License
 
-MIT
+Proprietary. All rights reserved.
