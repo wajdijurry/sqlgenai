@@ -1,6 +1,9 @@
 import os
 from datetime import timedelta
 
+print(os.environ.get('FLASK_ENV'))
+print(f"Database URL: {os.environ.get('DATABASE_URL')}")
+
 class Config:
     """Base configuration class"""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-please-change-in-production')
@@ -68,7 +71,7 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'mysql+pymysql://sqlgenai:sqlgenai_password@mysql/sqlgenai')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
 
 class TestingConfig(Config):
