@@ -3,8 +3,9 @@ import os
 from datetime import datetime, timedelta
 from flask import current_app, url_for
 
-# Initialize Stripe with the secret key from environment variables
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+# Don't set stripe.api_key globally - it will be set in each function
+# This is because this module is imported at application startup
+# before the Flask app context is available
 
 def create_checkout_session(user_id, plan_id, billing_cycle):
     """
@@ -18,6 +19,11 @@ def create_checkout_session(user_id, plan_id, billing_cycle):
     Returns:
         dict: Checkout session data
     """
+    # Set Stripe API key from Flask app config
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    if not stripe.api_key:
+        raise ValueError("Stripe API key is not set in application configuration")
+        
     from app.auth.models import SubscriptionPlan
     
     # Get plan details from database
@@ -110,6 +116,12 @@ def handle_subscription_event(event):
     Returns:
         bool: True if event was handled successfully
     """
+    # Set Stripe API key from Flask app config
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    if not stripe.api_key:
+        current_app.logger.error("Stripe API key is not set in application configuration")
+        return False
+        
     from app.extensions import db
     from app.auth.models import Subscription, PaymentHistory, User
     
@@ -234,6 +246,12 @@ def cancel_stripe_subscription(subscription_id):
     Returns:
         bool: True if subscription was cancelled successfully
     """
+    # Set Stripe API key from Flask app config
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    if not stripe.api_key:
+        current_app.logger.error("Stripe API key is not set in application configuration")
+        return False
+        
     try:
         stripe.Subscription.delete(subscription_id)
         return True
@@ -251,6 +269,12 @@ def get_subscription_data(subscription_id):
     Returns:
         dict: Subscription data
     """
+    # Set Stripe API key from Flask app config
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    if not stripe.api_key:
+        current_app.logger.error("Stripe API key is not set in application configuration")
+        return None
+        
     try:
         subscription = stripe.Subscription.retrieve(subscription_id)
         return subscription
