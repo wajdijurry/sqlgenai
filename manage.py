@@ -3,7 +3,8 @@ import os
 from flask_migrate import Migrate, MigrateCommand
 from flask.cli import FlaskGroup
 
-from app import create_app, db
+from app import create_app
+from app import db
 from app.auth.models import User, Subscription, PaymentHistory
 from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
 

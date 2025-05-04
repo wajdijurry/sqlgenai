@@ -5,12 +5,15 @@ import pathlib
 from datetime import timedelta
 from flask import Flask, jsonify
 from flask_login import LoginManager
-
-# Import database instance directly
-from app.utils.db_init import db, migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 # Initialize extensions
+db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
+
+# Configure logging function
 
 def configure_logging(app):
     """Configure logging to write to logs/gunicorn-* files"""
@@ -139,16 +142,20 @@ def create_app(config_name=None):
     for key in sensitive_keys:
         app.logger.info(f"Sensitive config: {key} is {'set' if app.config.get(key) else 'not set'}")
     
-    # Initialize database with soft delete functionality
-    from app.utils.db_init import init_db
-    
-    # Important: Initialize db before any db-related operations
+    # Initialize database
     db.init_app(app)
     migrate.init_app(app, db)
     
+    # Initialize soft delete functionality
     with app.app_context():
-        # Initialize the rest of the database components
-        init_db(app)
+        # Import models to ensure they're registered with SQLAlchemy
+        from app.auth.models import User, Subscription, PaymentHistory, SubscriptionPlan, QueryUsage
+        from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
+        
+        # Initialize soft delete functionality
+        from app.utils.soft_delete import initialize_soft_delete
+        initialize_soft_delete(db)
+        
         app.logger.info("Database initialized successfully")
         
     # Initialize Redis cache if enabled
