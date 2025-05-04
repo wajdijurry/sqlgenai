@@ -40,9 +40,9 @@ def connections():
 @token_required
 def get_connections():
     """API endpoint to get all database connections for the current user"""
-    # Handle OPTIONS request for CORS preflight
+    # OPTIONS requests are handled by Apache
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     try:
         # Get user from token
@@ -86,8 +86,7 @@ def get_connections():
             ]
         })
         
-        # Add CORS headers to success response
-        response = add_cors_headers(response)
+        # Response is returned directly (CORS handled by Apache)
         return response
     except Exception as e:
         logger.error(f"Error fetching connections: {str(e)}")
@@ -96,11 +95,7 @@ def get_connections():
             'message': f"Failed to get connections: {str(e)}"
         }), 500
         
-        # Add CORS headers to error response
-        if isinstance(response, tuple):
-            response = (add_cors_headers(response[0]), response[1])
-        else:
-            response = add_cors_headers(response)
+        # Error response is returned directly (CORS handled by Apache)
             
         return response
 

@@ -17,9 +17,9 @@ from app.utils.auth import token_required
 @token_required
 def update_profile():
     """Update user profile"""
-    # Handle OPTIONS request for CORS preflight
+    # OPTIONS requests are handled by Apache
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
@@ -198,8 +198,8 @@ def update_profile():
         }
     })
     
-    # Add CORS headers to the response
-    return add_cors_headers(response)
+    # Response is returned directly (CORS handled by Apache)
+    return response
 
 @auth_bp.route('/api/subscription/checkout/<plan_id>/<billing_cycle>', methods=['GET'])
 @login_required
