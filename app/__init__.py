@@ -17,7 +17,10 @@ def create_app(config_name=None):
                 "http://localhost:3001", 
                 "http://host.docker.internal:3001",
                 "http://127.0.0.1:3001",
-                "http://frontend:3001"
+                "http://frontend:3001",
+                "http://sqlgenai.com",
+                "http://www.sqlgenai.com",
+                "http://api.sqlgenai.com",
             ],
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
