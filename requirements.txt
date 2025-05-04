@@ -7,7 +7,6 @@ Flask-WTF==1.2.1
 WTForms==3.1.1
 cryptography==41.0.5  # For encryption utilities
 Flask-Migrate==4.0.5  # Added back for soft delete implementation
-Flask-CORS==4.0.0
 Werkzeug==2.3.7
 
 # Database connectivity

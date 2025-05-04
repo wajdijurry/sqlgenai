@@ -4,8 +4,6 @@ import json
 import time
 import logging
 from datetime import datetime
-# CORS is now handled by Apache
-
 from app.utils.db_init import db
 from app.api import api_bp
 from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
@@ -186,7 +184,7 @@ def auth_login():
     """Login a user"""
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     from app.auth.models import User
     import secrets
@@ -261,8 +259,6 @@ def auth_login():
         }
     })
     
-    # Add CORS headers to the response
-    response = add_cors_headers(response)
     
     return response
 
@@ -383,20 +379,19 @@ def get_query_count():
 @token_required
 def get_query_history():
     """Get query history for current user"""
-    # Handle OPTIONS request for CORS preflight
+    # OPTIONS requests are handled by Apache
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Get pagination parameters
     page = request.args.get('page', 1, type=int)
@@ -439,7 +434,7 @@ def get_query_history():
     # If page is out of range and not the first page, return empty results instead of 404
     if page > total_pages:
         # Return empty result set with pagination info
-        response = jsonify({
+        return jsonify({
             'success': True,
             'history': [],
             'total_count': total_count,
@@ -450,7 +445,6 @@ def get_query_history():
                 'pages': total_pages
             }
         })
-        return add_cors_headers(response)
     
     # Paginate results
     try:
@@ -459,7 +453,7 @@ def get_query_history():
         # Handle any pagination errors
         logger.error(f"Pagination error: {str(e)}")
         # Return empty result set
-        response = jsonify({
+        return jsonify({
             'success': True,
             'history': [],
             'total_count': total_count,
@@ -470,7 +464,6 @@ def get_query_history():
                 'pages': total_pages
             }
         })
-        return add_cors_headers(response)
     
     # Format results
     history = []
@@ -489,7 +482,7 @@ def get_query_history():
             'created_at': item.created_at.isoformat()
         })
     
-    response = jsonify({
+    return jsonify({
         'success': True,
         'history': history,
         'total_count': pagination.total,
@@ -501,27 +494,23 @@ def get_query_history():
         }
     })
     
-    # Add CORS headers to the response
-    return add_cors_headers(response)
-
 @api_bp.route('/profile', methods=['PUT', 'OPTIONS'])
 @token_required
 def update_user_profile():
     """Update user profile"""
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Get profile data from request
     print("Request headers:", dict(request.headers))
@@ -538,11 +527,10 @@ def update_user_profile():
     
     if not data:
         print("No data provided or invalid JSON")
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'No data provided or invalid JSON'
         }), 400
-        return add_cors_headers(response[0]), response[1]
     
     # Log the user and data for debugging
     print(f"Updating profile for user ID: {user.id}, email: {user.email}")
@@ -583,11 +571,10 @@ def update_user_profile():
     if 'currentPassword' in data and 'newPassword' in data:
         # Verify current password
         if not user.check_password(data['currentPassword']):
-            response = jsonify({
+            return jsonify({
                 'success': False,
                 'message': 'Current password is incorrect'
             }), 400
-            return add_cors_headers(response[0]), response[1]
         
         # Set new password
         user.set_password(data['newPassword'])
@@ -655,14 +642,13 @@ def update_user_profile():
     except Exception as e:
         print(f"Error committing changes to database: {str(e)}")
         db.session.rollback()
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': f'Database error: {str(e)}'
         }), 500
-        return add_cors_headers(response[0]), response[1]
     
     # Return updated user data
-    response = jsonify({
+    return jsonify({
         'success': True,
         'message': 'Profile updated successfully',
         'user': {
@@ -681,9 +667,6 @@ def update_user_profile():
             }
         }
     })
-    
-    # Add CORS headers to the response
-    return add_cors_headers(response)
 
 @api_bp.route('/history/<int:query_id>', methods=['GET', 'OPTIONS'])
 @token_required
@@ -691,18 +674,17 @@ def get_query_by_id(query_id):
     """Get a specific query by ID"""
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Find query in database
     query = QueryHistory.query.filter_by(id=query_id, user_id=user.id).first()
@@ -713,7 +695,7 @@ def get_query_by_id(query_id):
             'message': 'Query not found'
         }), 404
     
-    response = jsonify({
+    return jsonify({
         'success': True,
         'query': {
             'id': query.id,
@@ -727,9 +709,6 @@ def get_query_by_id(query_id):
             'created_at': query.created_at.isoformat()
         }
     })
-    
-    # Add CORS headers to the response
-    return add_cors_headers(response)
 
 @api_bp.route('/history/<int:query_id>/delete', methods=['POST', 'DELETE', 'OPTIONS'])
 @token_required
@@ -737,47 +716,43 @@ def delete_query_by_id(query_id):
     """Delete a query history item by ID"""
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Find the query
     query = QueryHistory.query.filter_by(id=query_id, user_id=user.id).first()
     
     if not query:
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Query not found'
         }), 404
-        return add_cors_headers(response[0]), response[1]
     
     try:
         # Delete the query
         db.session.delete(query)
         db.session.commit()
         
-        response = jsonify({
+        return jsonify({
             'success': True,
             'message': 'Query deleted successfully'
         })
-        return add_cors_headers(response)
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error deleting query: {str(e)}")
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': f'Failed to delete query: {str(e)}'
         }), 500
-        return add_cors_headers(response[0]), response[1]
 
 @api_bp.route('/history/<int:query_id>/favorite', methods=['POST', 'OPTIONS'])
 @token_required
@@ -785,18 +760,17 @@ def toggle_favorite(query_id):
     """Toggle favorite status for a query"""
     # Handle OPTIONS request for CORS preflight
     if request.method == 'OPTIONS':
-        return cors_preflight_response()
+        return '', 200
         
     # Get the current user from the request object if using token auth
     user = getattr(request, 'current_user', current_user)
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Find query in database
     query = QueryHistory.query.filter_by(
@@ -813,13 +787,10 @@ def toggle_favorite(query_id):
     query.is_favorite = not query.is_favorite
     db.session.commit()
     
-    response = jsonify({
+    return jsonify({
         'success': True,
         'is_favorite': query.is_favorite
     })
-    
-    # Add CORS headers to the response
-    return add_cors_headers(response)
 
 @api_bp.route('/explain', methods=['POST'])
 @token_required

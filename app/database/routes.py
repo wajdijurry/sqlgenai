@@ -90,14 +90,10 @@ def get_connections():
         return response
     except Exception as e:
         logger.error(f"Error fetching connections: {str(e)}")
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': f"Failed to get connections: {str(e)}"
         }), 500
-        
-        # Error response is returned directly (CORS handled by Apache)
-            
-        return response
 
 @api_bp.route('/database/connections', methods=['POST'])
 @token_required

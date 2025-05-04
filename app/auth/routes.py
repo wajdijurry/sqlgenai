@@ -26,11 +26,10 @@ def update_profile():
     
     # Check if we have a valid user
     if not user or not hasattr(user, 'id'):
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'Authentication required'
         }), 401
-        return add_cors_headers(response[0]), response[1]
     
     # Get profile data from request
     print("Request headers:", dict(request.headers))
@@ -47,11 +46,10 @@ def update_profile():
     
     if not data:
         print("No data provided or invalid JSON")
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': 'No data provided or invalid JSON'
         }), 400
-        return add_cors_headers(response[0]), response[1]
     
     # Log the user and data for debugging
     print(f"Updating profile for user ID: {user.id}, email: {user.email}")
@@ -92,11 +90,10 @@ def update_profile():
     if 'currentPassword' in data and 'newPassword' in data:
         # Verify current password
         if not user.check_password(data['currentPassword']):
-            response = jsonify({
+            return jsonify({
                 'success': False,
                 'message': 'Current password is incorrect'
             }), 400
-            return add_cors_headers(response[0]), response[1]
         
         # Set new password
         user.set_password(data['newPassword'])
@@ -171,11 +168,10 @@ def update_profile():
     except Exception as e:
         print(f"Error committing changes to database: {str(e)}")
         db.session.rollback()
-        response = jsonify({
+        return jsonify({
             'success': False,
             'message': f'Database error: {str(e)}'
         }), 500
-        return add_cors_headers(response[0]), response[1]
     
     # Return updated user data
     response = jsonify({

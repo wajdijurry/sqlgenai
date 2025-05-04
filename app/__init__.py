@@ -1,7 +1,6 @@
 import os
 from flask import Flask, jsonify
 from flask_login import LoginManager
-# CORS is now handled entirely at the Apache level
 
 # Initialize extensions
 login_manager = LoginManager()
@@ -9,7 +8,6 @@ login_manager = LoginManager()
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
     app = Flask(__name__)
-    # CORS is now handled entirely at the Apache level
     # This prevents duplicate headers and simplifies the application
     
     # Load configuration
