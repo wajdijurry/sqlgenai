@@ -16,6 +16,8 @@ def token_required(f):
             
         # If user is already authenticated via Flask-Login, allow access
         if current_user.is_authenticated and not isinstance(current_user, AnonymousUserMixin):
+            # Set request.current_user to ensure consistent access in route handlers
+            request.current_user = current_user
             return f(*args, **kwargs)
         
         # Check for token in Authorization header
