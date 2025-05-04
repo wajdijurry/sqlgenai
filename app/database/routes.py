@@ -45,26 +45,9 @@ def get_connections():
         return '', 200
         
     try:
-        # Get user from token
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({
-                'success': False,
-                'message': 'Authorization header is missing'
-            }), 401
-        
-        token = auth_header.split(" ")[1] if len(auth_header.split(" ")) > 1 else auth_header
-        
-        # Get user from token
-        user = User.query.filter_by(auth_token=token).first()
-        if not user:
-            return jsonify({
-                'success': False,
-                'message': 'Invalid token'
-            }), 401
-        
+        # The token_required decorator already validates the token and sets request.current_user
         # Get all active connections for the user (soft-deleted records are automatically filtered)
-        connections = DatabaseConnection.query.filter_by(user_id=user.id).all()
+        connections = DatabaseConnection.query.filter_by(user_id=request.current_user.id).all()
         
         response = jsonify({
             'success': True,
