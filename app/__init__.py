@@ -73,7 +73,10 @@ def create_app(config_name=None):
     # Database configuration - get from environment with fallback
     database_url = os.environ.get('DATABASE_URL')
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable is not set")
+        app.logger.error("DATABASE_URL environment variable is not set. Check your .env file and server configuration.")
+        app.logger.error(f"Current environment variables: {[k for k in os.environ.keys() if k not in ['SECRET_KEY', 'STRIPE_SECRET_KEY', 'OPENAI_API_KEY', 'GOOGLE_CLIENT_SECRET']]}")
+        app.logger.error(f"Current working directory: {os.getcwd()}")
+        raise ValueError("DATABASE_URL environment variable is not set. See logs for details.")
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     
