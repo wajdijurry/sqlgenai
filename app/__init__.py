@@ -7,11 +7,14 @@ from flask import Flask, jsonify
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from dotenv import load_dotenv
 
-# Initialize extensions
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
+# Load environment variables at the module level
+# This ensures they're available before any other imports
+load_dotenv()
+
+# Import database and login manager from extensions module
+from app.extensions import db, migrate, login_manager
 
 # Configure logging function
 
@@ -77,20 +80,13 @@ def create_app(config_name=None):
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') 
     app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3001')  
     
-    # Database configuration - ensure this is set before initializing extensions
-    # First check if it's already set in the app config
-    database_url = app.config.get('SQLALCHEMY_DATABASE_URI')
+    # Database configuration - get from environment with fallback
+    database_url = os.environ.get('DATABASE_URL')
     if not database_url:
-        # If not in config, try to get from environment
-        database_url = os.environ.get('DATABASE_URL')
-        if not database_url:
-            # If not in environment, use default
-            database_url = 'mysql+pymysql://sqlgenai:sqlgenai_password@localhost/sqlgenai'
-            app.logger.warning("DATABASE_URL not found in environment, using default connection string")
-        
-        # Set in app config
-        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-        
+        raise ValueError("DATABASE_URL environment variable is not set")
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    
     # Log the database URL (securely)
     masked_url = database_url.split('@')[0].split('://')[0] + '://*****@' + (database_url.split('@')[1] if '@' in database_url else 'localhost/db')
     app.logger.info(f"Database URL set to: {masked_url}")
