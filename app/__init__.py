@@ -92,7 +92,7 @@ def create_app(config_name=None):
     from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
     
     # Set up login view for API
-    login_manager.login_view = 'api.auth_login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
     
     # Configure login manager to handle API authentication
@@ -106,14 +106,14 @@ def create_app(config_name=None):
     
     # Register blueprints
     from app.auth import auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
     
     # Register Google auth blueprint
     from app.auth.google_routes import google_bp
-    app.register_blueprint(google_bp, url_prefix='/api')
+    app.register_blueprint(google_bp)
     
     from app.api import api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(api_bp)
     
     from app.api.webhooks import webhook_bp
     app.register_blueprint(webhook_bp, url_prefix='/webhooks')
