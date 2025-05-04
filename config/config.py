@@ -90,3 +90,14 @@ class ProductionConfig(Config):
     REMEMBER_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_HTTPONLY = True
+    
+    # Custom SQLAlchemy engine configuration for SSL connections
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'connect_args': {
+            'ssl': {
+                'ca': None,
+                'check_hostname': False,
+                'verify_mode': None
+            }
+        }
+    }
