@@ -3,7 +3,7 @@ CORS utilities for the SQLGenAI application
 This module centralizes CORS configuration for all API endpoints
 """
 
-from flask import request, Response, jsonify
+from flask import request, jsonify, current_app
 
 def add_cors_headers(response, allow_credentials=True):
     """
@@ -17,17 +17,25 @@ def add_cors_headers(response, allow_credentials=True):
         Response with CORS headers
     """
     # Get the origin from the request
-    origin = request.headers.get('Origin', 'http://localhost:3001')
+    origin = request.headers.get('Origin')
     
-    # Add CORS headers
-    response.headers.add('Access-Control-Allow-Origin', origin)
+    # If no origin in request, use a default that won't cause issues
+    if not origin:
+        # In production, default to the frontend domain
+        if 'FRONTEND_URL' in current_app.config:
+            origin = current_app.config['FRONTEND_URL']
+        else:
+            origin = 'http://localhost:3001'
+    
+    # Add CORS headers - must be exact match for credentials to work
+    response.headers.set('Access-Control-Allow-Origin', origin)
     
     if allow_credentials:
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.set('Access-Control-Allow-Credentials', 'true')
     
     # Add other CORS headers
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
     
     return response
 

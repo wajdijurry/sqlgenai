@@ -10,30 +10,14 @@ login_manager = LoginManager()
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
     app = Flask(__name__)
-    # Get CORS origins from environment or use defaults
-    cors_origins = os.environ.get('CORS_ORIGINS', '').split(',') if os.environ.get('CORS_ORIGINS') else [
-        "http://localhost:3001", 
-        "http://host.docker.internal:3001",
-        "http://127.0.0.1:3001",
-        "http://frontend:3001",
-        "https://sqlgenai.com",
-        "https://www.sqlgenai.com",
-        "https://api.sqlgenai.com",
-    ]
-    
-    # Clean up any empty strings from the list
-    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
-    
-    # Configure CORS with specific origins
+    # Configure CORS to allow requests from the frontend domain
+    # Use a simple configuration with just the essential settings
     CORS(app, 
-        resources={r"/*": {
-            "origins": cors_origins,
-            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "supports_credentials": True,
-            "expose_headers": ["Content-Type", "Authorization"]
-        }},
-        supports_credentials=True
+        origins=["https://sqlgenai.com", "http://localhost:3001"],
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        expose_headers=["Content-Type", "Authorization"]
     )
     
     # We'll use Flask-CORS for handling CORS, so we don't need the custom after_request handler
