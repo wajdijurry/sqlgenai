@@ -78,13 +78,22 @@ def create_app(config_name=None):
     app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3001')  
     
     # Database configuration - ensure this is set before initializing extensions
-    database_url = os.environ.get('DATABASE_URL')
+    # First check if it's already set in the app config
+    database_url = app.config.get('SQLALCHEMY_DATABASE_URI')
     if not database_url:
-        database_url = 'mysql+pymysql://sqlgenai:sqlgenai_password@localhost/sqlgenai'
-        app.logger.warning("DATABASE_URL not found in environment, using default connection string")
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    app.logger.info(f"Database URL set to: {database_url.split('@')[0].split('://')[0]}://*****@{database_url.split('@')[1] if '@' in database_url else 'localhost/db'}")
+        # If not in config, try to get from environment
+        database_url = os.environ.get('DATABASE_URL')
+        if not database_url:
+            # If not in environment, use default
+            database_url = 'mysql+pymysql://sqlgenai:sqlgenai_password@localhost/sqlgenai'
+            app.logger.warning("DATABASE_URL not found in environment, using default connection string")
+        
+        # Set in app config
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        
+    # Log the database URL (securely)
+    masked_url = database_url.split('@')[0].split('://')[0] + '://*****@' + (database_url.split('@')[1] if '@' in database_url else 'localhost/db')
+    app.logger.info(f"Database URL set to: {masked_url}")
     
     # Other database settings
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -152,33 +161,25 @@ def create_app(config_name=None):
     for key in sensitive_keys:
         app.logger.info(f"Sensitive config: {key} is {'set' if app.config.get(key) else 'not set'}")
     
-    # Initialize extensions with app - do this BEFORE registering blueprints
-    login_manager.init_app(app)
+    # Initialize extensions with the app
+    # This must be done BEFORE registering blueprints
+    from app.extensions import db, migrate, login_manager, init_app
     
-    # Initialize database with explicit error handling - do this BEFORE importing models
-    try:
-        if not app.config.get('SQLALCHEMY_DATABASE_URI'):
-            raise ValueError("Database URL is not set. Check your environment variables.")
+    # Initialize all extensions
+    init_app(app)
+    app.logger.info("Extensions initialized successfully")
+    
+    # Create an application context for database operations
+    with app.app_context():
+        # Import models to ensure they're registered with SQLAlchemy
+        from app.auth.models import User, Subscription, PaymentHistory, SubscriptionPlan, QueryUsage
+        from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
         
-        # Initialize SQLAlchemy with the app
-        db.init_app(app)
-        migrate.init_app(app, db)
-        app.logger.info("SQLAlchemy and Migrate extensions initialized successfully")
+        # Initialize soft delete functionality
+        from app.utils.soft_delete import initialize_soft_delete
+        initialize_soft_delete(db)
         
-        # Create an application context for database operations
-        with app.app_context():
-            # Import models to ensure they're registered with SQLAlchemy
-            from app.auth.models import User, Subscription, PaymentHistory, SubscriptionPlan, QueryUsage
-            from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
-            
-            # Initialize soft delete functionality
-            from app.utils.soft_delete import initialize_soft_delete
-            initialize_soft_delete(db)
-            
-            app.logger.info("Database models registered and initialized successfully")
-    except Exception as e:
-        app.logger.error(f"Failed to initialize database: {str(e)}")
-        raise
+        app.logger.info("Database models registered and initialized successfully")
         
     # Initialize Redis cache if enabled
     if app.config.get('REDIS_CACHE_ENABLED', True):
