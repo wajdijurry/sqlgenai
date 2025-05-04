@@ -62,6 +62,9 @@ def create_app(config_name=None):
     # Configure logging
     configure_logging(app)
     
+    # Log application startup
+    app.logger.info("Starting application initialization")
+    
     # Load configuration
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
@@ -74,13 +77,23 @@ def create_app(config_name=None):
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') 
     app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3001')  
     
-    # Database configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'mysql+pymysql://sqlgenai:sqlgenai_password@localhost/sqlgenai')
+    # Database configuration - ensure this is set before initializing extensions
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        database_url = 'mysql+pymysql://sqlgenai:sqlgenai_password@localhost/sqlgenai'
+        app.logger.warning("DATABASE_URL not found in environment, using default connection string")
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.logger.info(f"Database URL set to: {database_url.split('@')[0].split('://')[0]}://*****@{database_url.split('@')[1] if '@' in database_url else 'localhost/db'}")
+    
+    # Other database settings
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Session security settings
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['REMEMBER_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
     
     # Set Stripe configuration
     app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
@@ -104,9 +117,6 @@ def create_app(config_name=None):
     app.config['GOOGLE_CLIENT_SECRET'] = os.environ.get('GOOGLE_CLIENT_SECRET')
     app.config['GOOGLE_DISCOVERY_URL'] = 'https://accounts.google.com/.well-known/openid-configuration'
     app.config['GOOGLE_REDIRECT_URI'] = os.environ.get('GOOGLE_REDIRECT_URI')
-    
-    # Initialize extensions with app
-    login_manager.init_app(app)
     
     # Log application configuration
     app.logger.info("Application configuration:")
@@ -142,21 +152,33 @@ def create_app(config_name=None):
     for key in sensitive_keys:
         app.logger.info(f"Sensitive config: {key} is {'set' if app.config.get(key) else 'not set'}")
     
-    # Initialize database
-    db.init_app(app)
-    migrate.init_app(app, db)
+    # Initialize extensions with app - do this BEFORE registering blueprints
+    login_manager.init_app(app)
     
-    # Initialize soft delete functionality
-    with app.app_context():
-        # Import models to ensure they're registered with SQLAlchemy
-        from app.auth.models import User, Subscription, PaymentHistory, SubscriptionPlan, QueryUsage
-        from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
+    # Initialize database with explicit error handling - do this BEFORE importing models
+    try:
+        if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+            raise ValueError("Database URL is not set. Check your environment variables.")
         
-        # Initialize soft delete functionality
-        from app.utils.soft_delete import initialize_soft_delete
-        initialize_soft_delete(db)
+        # Initialize SQLAlchemy with the app
+        db.init_app(app)
+        migrate.init_app(app, db)
+        app.logger.info("SQLAlchemy and Migrate extensions initialized successfully")
         
-        app.logger.info("Database initialized successfully")
+        # Create an application context for database operations
+        with app.app_context():
+            # Import models to ensure they're registered with SQLAlchemy
+            from app.auth.models import User, Subscription, PaymentHistory, SubscriptionPlan, QueryUsage
+            from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
+            
+            # Initialize soft delete functionality
+            from app.utils.soft_delete import initialize_soft_delete
+            initialize_soft_delete(db)
+            
+            app.logger.info("Database models registered and initialized successfully")
+    except Exception as e:
+        app.logger.error(f"Failed to initialize database: {str(e)}")
+        raise
         
     # Initialize Redis cache if enabled
     if app.config.get('REDIS_CACHE_ENABLED', True):
@@ -185,22 +207,33 @@ def create_app(config_name=None):
             'authenticated': False
         }), 401
     
-    # Register blueprints
+    # Register blueprints - do this AFTER database initialization
+    app.logger.info("Registering blueprints...")
+    
+    # Auth blueprints
     from app.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.logger.info("Registered auth blueprint")
     
-    # Register Google auth blueprint
+    # Google auth blueprint
     from app.auth.google_routes import google_bp
     app.register_blueprint(google_bp)
+    app.logger.info("Registered Google auth blueprint")
     
+    # API blueprint
     from app.api import api_bp
     app.register_blueprint(api_bp)
+    app.logger.info("Registered API blueprint")
     
+    # Webhooks blueprint
     from app.api.webhooks import webhook_bp
     app.register_blueprint(webhook_bp, url_prefix='/webhooks')
+    app.logger.info("Registered webhooks blueprint")
     
+    # Database blueprint
     from app.database import database_bp
     app.register_blueprint(database_bp, url_prefix='/database')
+    app.logger.info("Registered database blueprint")
     
     # Register main routes
     from app.routes import init_app
