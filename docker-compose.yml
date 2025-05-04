@@ -1,0 +1,80 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/frontend
+      - /app/venv
+    env_file:
+      - .env
+    environment:
+      - FLASK_CONFIG=development
+      - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://sqlgenai:sqlgenai_password@mysql/sqlgenai
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - sqlgenai-network
+      
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=sqlgenai
+      - MYSQL_USER=sqlgenai
+      - MYSQL_PASSWORD=sqlgenai_password
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: unless-stopped
+    networks:
+      - sqlgenai-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    env_file:
+      - ./frontend/.env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - sqlgenai-network
+      
+  redis:
+    image: redis:latest
+    ports:
+      - "6390:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - sqlgenai-network
+
+networks:
+  sqlgenai-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:

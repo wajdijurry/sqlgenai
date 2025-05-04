@@ -1,0 +1,42 @@
+# Core dependencies
+Flask==2.3.3
+Flask-RESTful==0.3.10
+Flask-SQLAlchemy==2.5.1  # Using older version compatible with SQLAlchemy 1.4
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+WTForms==3.1.1
+cryptography==41.0.5  # For encryption utilities
+Flask-Migrate==4.0.5  # Added back for soft delete implementation
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
+
+# Database connectivity
+SQLAlchemy==1.4.49  # Keep version 1.4.x for compatibility
+psycopg2-binary==2.9.9  # PostgreSQL driver
+pymysql==1.1.0  # MySQL driver
+mysqlclient==2.2.0  # MySQL client
+pyodbc==4.0.39  # SQL Server driver - older version for better compatibility
+cx_Oracle==8.3.0  # Oracle database driver
+
+# AI Models
+openai==1.3.7
+# Using DeepSeek SDK package
+deepseek-sdk
+
+# Payments (for simulation)
+stripe==7.4.0
+
+# Web Server
+gunicorn==21.2.0
+mod-wsgi==4.9.4
+
+# Utils
+python-dotenv==1.0.0
+pyyaml==6.0.1
+requests==2.31.0
+tqdm==4.66.1
+sqlparse==0.4.4  # SQL parsing for query analysis
+redis==5.0.1  # Redis client for caching
+
+# React Integration
+flask-assets==2.0
