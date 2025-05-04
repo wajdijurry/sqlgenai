@@ -1,14 +1,60 @@
 import os
+import logging
+from logging.handlers import TimedRotatingFileHandler
+import pathlib
+from datetime import timedelta
 from flask import Flask, jsonify
 from flask_login import LoginManager
 
 # Initialize extensions
 login_manager = LoginManager()
 
+def configure_logging(app):
+    """Configure logging to write to logs/gunicorn-* files"""
+    # Create logs directory if it doesn't exist
+    log_dir = pathlib.Path('logs')
+    log_dir.mkdir(exist_ok=True)
+    
+    # Set up file handler for app logger
+    log_file = log_dir / 'gunicorn'
+    file_handler = TimedRotatingFileHandler(
+        filename=str(log_file),
+        when='midnight',
+        interval=1,
+        backupCount=30,  # Keep logs for 30 days
+        encoding='utf-8'
+    )
+    
+    # Set formatter
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    )
+    file_handler.setFormatter(formatter)
+    
+    # Set log level based on app debug setting
+    if app.debug:
+        file_handler.setLevel(logging.DEBUG)
+        app.logger.setLevel(logging.DEBUG)
+    else:
+        file_handler.setLevel(logging.INFO)
+        app.logger.setLevel(logging.INFO)
+    
+    # Add the file handler to the app's logger
+    app.logger.addHandler(file_handler)
+    
+    # Remove default handler if present
+    if app.logger.hasHandlers():
+        app.logger.handlers.clear()
+    
+    app.logger.info('Logging configured to logs/gunicorn-*')
+
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
     app = Flask(__name__)
     # This prevents duplicate headers and simplifies the application
+    
+    # Configure logging
+    configure_logging(app)
     
     # Load configuration
     if config_name is None:
@@ -55,6 +101,40 @@ def create_app(config_name=None):
     
     # Initialize extensions with app
     login_manager.init_app(app)
+    
+    # Log application configuration
+    app.logger.info("Application configuration:")
+    # Log non-sensitive configuration values
+    safe_config = {
+        'DEBUG': app.config['DEBUG'],
+        'PERMANENT_SESSION_LIFETIME': app.config['PERMANENT_SESSION_LIFETIME'],
+        'FRONTEND_URL': app.config['FRONTEND_URL'],
+        'SESSION_COOKIE_SECURE': app.config['SESSION_COOKIE_SECURE'],
+        'REMEMBER_COOKIE_SECURE': app.config['REMEMBER_COOKIE_SECURE'],
+        'SESSION_COOKIE_HTTPONLY': app.config['SESSION_COOKIE_HTTPONLY'],
+        'REMEMBER_COOKIE_HTTPONLY': app.config['REMEMBER_COOKIE_HTTPONLY'],
+        'SQLALCHEMY_TRACK_MODIFICATIONS': app.config['SQLALCHEMY_TRACK_MODIFICATIONS'],
+        'REDIS_CACHE_ENABLED': app.config['REDIS_CACHE_ENABLED'],
+        'OPENAI_MODEL': app.config['OPENAI_MODEL'],
+        'DEEPSEEK_MODEL': app.config['DEEPSEEK_MODEL'],
+        'CLAUDE_3_OPUS_MODEL': app.config['CLAUDE_3_OPUS_MODEL'],
+        'GOOGLE_DISCOVERY_URL': app.config['GOOGLE_DISCOVERY_URL']
+    }
+    
+    # Log each configuration item
+    for key, value in safe_config.items():
+        app.logger.info(f"Config: {key} = {value}")
+    
+    # Log which sensitive keys are set (without values)
+    sensitive_keys = [
+        'SECRET_KEY', 'SQLALCHEMY_DATABASE_URI', 'STRIPE_SECRET_KEY',
+        'STRIPE_PUBLISHABLE_KEY', 'STRIPE_WEBHOOK_SECRET', 'OPENAI_API_KEY',
+        'DEEPSEEK_API_KEY', 'CLAUDE_3_OPUS_API_KEY', 'REDIS_URL',
+        'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI'
+    ]
+    
+    for key in sensitive_keys:
+        app.logger.info(f"Sensitive config: {key} is {'set' if app.config.get(key) else 'not set'}")
     
     # Initialize database with soft delete functionality
     from app.utils.db_init import init_db
