@@ -101,6 +101,7 @@ const GeneratePage = ({ user }) => {
     description: 'DeepSeek SQL model for general SQL generation'
   }]);
   const [loadingModels, setLoadingModels] = useState(true);
+  const [loading, setLoading] = useState(false); // General loading state
   const [prompt, setPrompt] = useState('');
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [generationTime, setGenerationTime] = useState(null);
