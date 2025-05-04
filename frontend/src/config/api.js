@@ -3,9 +3,11 @@
  * This file centralizes API URL configuration for all services
  */
 
-// Get the API URL from environment variables or use a default
+// In production, use the api subdomain; in development, use localhost with /api path
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-export const BASE_API_URL = `${API_BASE}/api`;
+
+// In production, API is at the root of api.sqlgenai.com, in development it's at /api path
+export const BASE_API_URL = API_BASE;
 
 // API endpoints
 export const AUTH_API_URL = `${BASE_API_URL}/auth`;

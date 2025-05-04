@@ -2,45 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 // Services
 import { generateQuery, getAvailableModels } from '../services/queryService';
-
-// Database type icons
-const DbTypeIcon = ({ type, sx = {} }) => {
-  const getIconUrl = (dbType) => {
-    switch (dbType.toLowerCase()) {
-      case 'mysql':
-        return 'https://www.mysql.com/common/logos/logo-mysql-170x115.png';
-      case 'postgresql':
-        return 'https://www.postgresql.org/media/img/about/press/elephant.png';
-      case 'sqlserver':
-        return 'https://www.microsoft.com/en-us/sql-server/img/sql-server-logo.png';
-      case 'oracle':
-        return 'https://www.oracle.com/a/ocom/img/cb71-java-logo.png';
-      case 'sqlite':
-        return 'https://www.sqlite.org/images/sqlite370_banner.gif';
-      default:
-        return null;
-    }
-  };
-
-  const iconUrl = getIconUrl(type);
-  
-  if (iconUrl) {
-    return (
-      <img 
-        src={iconUrl} 
-        alt={`${type} logo`} 
-        style={{ 
-          width: 40, 
-          height: 40, 
-          objectFit: 'contain',
-          ...sx
-        }} 
-      />
-    );
-  }
-  
-  return <StorageIcon sx={{ fontSize: 40, ...sx }} />;
-};
 // Context
 import { useSubscription } from '../context/SubscriptionContext';
 import { useConnections } from '../context/ConnectionsContext';
@@ -86,6 +47,45 @@ import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+// Database type icons
+const DbTypeIcon = ({ type, sx = {} }) => {
+  const getIconUrl = (dbType) => {
+    switch (dbType.toLowerCase()) {
+      case 'mysql':
+        return 'https://www.mysql.com/common/logos/logo-mysql-170x115.png';
+      case 'postgresql':
+        return 'https://www.postgresql.org/media/img/about/press/elephant.png';
+      case 'sqlserver':
+        return 'https://www.microsoft.com/en-us/sql-server/img/sql-server-logo.png';
+      case 'oracle':
+        return 'https://www.oracle.com/a/ocom/img/cb71-java-logo.png';
+      case 'sqlite':
+        return 'https://www.sqlite.org/images/sqlite370_banner.gif';
+      default:
+        return null;
+    }
+  };
+
+  const iconUrl = getIconUrl(type);
+  
+  if (iconUrl) {
+    return (
+      <img 
+        src={iconUrl} 
+        alt={`${type} logo`} 
+        style={{ 
+          width: 40, 
+          height: 40, 
+          objectFit: 'contain',
+          ...sx
+        }} 
+      />
+    );
+  }
+  
+  return <StorageIcon sx={{ fontSize: 40, ...sx }} />;
+};
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend);

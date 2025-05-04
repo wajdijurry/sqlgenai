@@ -9,10 +9,6 @@ class Config:
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=1)
     
-    # OpenMetadata configuration
-    OPENMETADATA_HOST = os.environ.get('OPENMETADATA_HOST', 'http://localhost:8585/api')
-    OPENMETADATA_AUTH_TOKEN = os.environ.get('OPENMETADATA_AUTH_TOKEN', '')
-    
     # AI Model configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
     OPENAI_MODEL = os.environ.get('OPENAI_MODEL', 'gpt-4')

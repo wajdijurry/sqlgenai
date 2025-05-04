@@ -204,6 +204,11 @@ export const processPayment = withCache(fetchProcessPayment, {
   ttl: 24 * 60 * 60 * 1000 // 24 hours - long enough to prevent duplicate processing
 });
 
+// Cache variables for subscription plans
+let plansCache = null;
+let plansCacheTimestamp = 0;
+const PLANS_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
 /**
  * Get all available subscription plans with pricing and features
  * @param {boolean} forceRefresh - Whether to force a refresh from the server

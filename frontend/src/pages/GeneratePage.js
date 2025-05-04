@@ -105,6 +105,7 @@ const GeneratePage = ({ user }) => {
   const [generatedQuery, setGeneratedQuery] = useState('');
   const [generationTime, setGenerationTime] = useState(null);
   const [queryId, setQueryId] = useState(null);
+  const [analyzePerformance, setAnalyzePerformance] = useState(true); // Add performance analysis by default
   
   // State for subscription and query limits
   const [subscription, setSubscription] = useState(null);
@@ -412,6 +413,40 @@ const GeneratePage = ({ user }) => {
       }
     }
   }, [location]);
+  
+  // Load a query by ID from the URL parameter
+  const loadQueryById = async (queryId) => {
+    try {
+      setLoading(true);
+      const result = await getQueryById(queryId);
+      
+      if (result && result.query) {
+        // Set the query text
+        setPrompt(result.prompt || '');
+        setGeneratedQuery(result.query);
+        
+        // If there's a connection ID, select that connection
+        if (result.connection_id && connections) {
+          const connection = connections.find(c => c.id === result.connection_id);
+          if (connection) {
+            setSelectedConnection(connection);
+            // Load schema for this connection
+            loadSchema(connection.id);
+          }
+        }
+        
+        // Set execution results if available
+        if (result.results) {
+          setQueryResults(result.results);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading query by ID:', err);
+      setError('Failed to load the requested query');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Load available AI models based on user's subscription
   const loadAvailableModels = async (forceRefresh = false) => {
