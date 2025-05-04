@@ -19,7 +19,8 @@ def create_app(config_name=None):
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
     # App configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')   
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') 
+    app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3001')  
     
     # Database configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -29,16 +30,10 @@ def create_app(config_name=None):
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
     
-    # Configure session to work across domains
-    app.config['SESSION_COOKIE_SECURE'] = False
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    
     # Set Stripe configuration
     app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
     app.config['STRIPE_PUBLISHABLE_KEY'] = os.environ.get('STRIPE_PUBLISHABLE_KEY')
     app.config['STRIPE_WEBHOOK_SECRET'] = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-    app.config['FRONTEND_URL'] = os.environ.get('FRONTEND_URL', 'http://localhost:3001')
     
     # Set AI model configuration
     app.config['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_KEY')
