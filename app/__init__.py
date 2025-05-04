@@ -19,58 +19,33 @@ from app.extensions import db, migrate, login_manager
 # Configure logging function
 
 def configure_logging(app):
-    """Configure logging to write to logs/gunicorn-* files"""
-    try:
-        # Try to use /var/log/sqlgenai directory (common for web apps)
-        log_dir = pathlib.Path('/var/log/sqlgenai')
-        if not log_dir.exists():
-            # Fall back to a directory relative to the application
-            app_dir = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
-            log_dir = app_dir.parent / 'logs'
-            
-        # Create logs directory if it doesn't exist and we have permissions
-        try:
-            log_dir.mkdir(exist_ok=True)
-        except PermissionError:
-            # Fall back to using stderr for logging if we can't create the directory
-            app.logger.warning(f"Cannot create log directory at {log_dir}. Falling back to stderr logging.")
-            return
-        
-        # Set up file handler for app logger
-        log_file = log_dir / 'gunicorn'
-        file_handler = TimedRotatingFileHandler(
-            filename=str(log_file),
-            when='midnight',
-            interval=1,
-            backupCount=30,  # Keep logs for 30 days
-            encoding='utf-8'
-        )
-    except Exception as e:
-        app.logger.warning(f"Error setting up file logging: {str(e)}. Falling back to stderr logging.")
-        return
+    """Configure logging to stderr for production use"""
+    # Set up a simple stderr handler
+    handler = logging.StreamHandler()
     
     # Set formatter
     formatter = logging.Formatter(
         '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
     )
-    file_handler.setFormatter(formatter)
+    handler.setFormatter(formatter)
     
     # Set log level based on app debug setting
     if app.debug:
-        file_handler.setLevel(logging.DEBUG)
+        handler.setLevel(logging.DEBUG)
         app.logger.setLevel(logging.DEBUG)
     else:
-        file_handler.setLevel(logging.INFO)
+        handler.setLevel(logging.INFO)
         app.logger.setLevel(logging.INFO)
     
-    # Add the file handler to the app's logger
-    app.logger.addHandler(file_handler)
-    
-    # Remove default handler if present
+    # Remove default handlers if present
     if app.logger.hasHandlers():
         app.logger.handlers.clear()
     
-    app.logger.info('Logging configured to logs/gunicorn-*')
+    # Add our handler
+    app.logger.addHandler(handler)
+    
+    # Log startup message
+    app.logger.info('Logging configured to stderr')
 
 def create_app(config_name=None):
     """Application factory pattern for Flask app"""
