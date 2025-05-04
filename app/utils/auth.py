@@ -20,6 +20,8 @@ def token_required(f):
         
         # Check for token in Authorization header
         auth_header = request.headers.get('Authorization')
+        origin = request.headers.get('Origin', 'http://localhost:3001')
+        
         if not auth_header or not auth_header.startswith('Bearer '):
             response = jsonify({
                 'success': False,
@@ -28,10 +30,10 @@ def token_required(f):
             
             # Add CORS headers to error response
             if isinstance(response, tuple):
-                response[0].headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response[0].headers.add('Access-Control-Allow-Origin', origin)
                 response[0].headers.add('Access-Control-Allow-Credentials', 'true')
             else:
-                response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response.headers.add('Access-Control-Allow-Origin', origin)
                 response.headers.add('Access-Control-Allow-Credentials', 'true')
                 
             return response
@@ -49,10 +51,10 @@ def token_required(f):
             
             # Add CORS headers to error response
             if isinstance(response, tuple):
-                response[0].headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response[0].headers.add('Access-Control-Allow-Origin', origin)
                 response[0].headers.add('Access-Control-Allow-Credentials', 'true')
             else:
-                response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response.headers.add('Access-Control-Allow-Origin', origin)
                 response.headers.add('Access-Control-Allow-Credentials', 'true')
                 
             return response
@@ -66,10 +68,10 @@ def token_required(f):
             
             # Add CORS headers to error response
             if isinstance(response, tuple):
-                response[0].headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response[0].headers.add('Access-Control-Allow-Origin', origin)
                 response[0].headers.add('Access-Control-Allow-Credentials', 'true')
             else:
-                response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3001')
+                response.headers.add('Access-Control-Allow-Origin', origin)
                 response.headers.add('Access-Control-Allow-Credentials', 'true')
                 
             return response
