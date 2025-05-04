@@ -457,6 +457,14 @@ def get_schema(connection_id):
         else:
             # No cached schema, fetch it from the database
             print(f"\n[DATABASE ROUTES] Fetching stored schema from source, for connection ID {connection_id}\n")
+            
+            # Get the connection object first
+            connection = DatabaseConnection.query.get(connection_id)
+            if not connection:
+                return jsonify({
+                    'success': False,
+                    'message': f"Connection with ID {connection_id} not found"
+                }), 404
 
             password = decrypt_password(connection.password)
             
