@@ -8,7 +8,7 @@ import requests
 import json
 import secrets
 from datetime import datetime, timedelta
-from app.utils.db_init import db
+from app.extensions import db
 from app.auth.models import User, Subscription
 from app.subscription_config import SUBSCRIPTION_PLANS
 

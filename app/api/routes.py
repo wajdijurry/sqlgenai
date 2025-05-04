@@ -4,7 +4,7 @@ import json
 import time
 import logging
 from datetime import datetime
-from app.utils.db_init import db
+from app.extensions import db
 from app.api import api_bp
 from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
 from app.auth.models import Subscription, User, SubscriptionPlan, QueryUsage

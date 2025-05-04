@@ -110,7 +110,7 @@ def handle_subscription_event(event):
     Returns:
         bool: True if event was handled successfully
     """
-    from app.utils.db_init import db
+    from app.extensions import db
     from app.auth.models import Subscription, PaymentHistory, User
     
     event_type = event['type']

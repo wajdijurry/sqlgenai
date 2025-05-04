@@ -1,8 +1,8 @@
-from app.utils.db_init import db
+from app.extensions import db
 from datetime import datetime
 from flask_login import UserMixin
 from app.utils.soft_delete import SoftDeleteMixin
-from app.utils.db_init import db
+from app.extensions import db
 
 class DatabaseConnection(SoftDeleteMixin, db.Model):
     """Model for storing database connection information"""

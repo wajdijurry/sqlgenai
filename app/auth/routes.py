@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from app.utils.db_init import db
+from app.extensions import db
 from app.auth import auth_bp
 from app.auth.models import User, Subscription, PaymentHistory
 from datetime import datetime, timedelta

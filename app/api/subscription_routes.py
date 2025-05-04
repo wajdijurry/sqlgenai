@@ -9,7 +9,7 @@ import secrets
 from datetime import datetime, timedelta
 import logging
 
-from app.utils.db_init import db
+from app.extensions import db
 from app.api import api_bp
 from app.auth.models import Subscription, SubscriptionPlan, PaymentHistory, QueryUsage
 from app.utils.auth import token_required

@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 # CORS is now handled by Apache
 
-from app.utils.db_init import db
+from app.extensions import db
 from app.database import database_bp
 from app.api import api_bp
 from app.database.models import DatabaseConnection, DatabaseSchema, QueryHistory
