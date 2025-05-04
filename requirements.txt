@@ -15,7 +15,7 @@ SQLAlchemy==1.4.49  # Keep version 1.4.x for compatibility
 psycopg2-binary==2.9.9  # PostgreSQL driver
 pymysql==1.1.0  # MySQL driver
 mysqlclient==2.2.0  # MySQL client
-pyodbc==4.0.39  # SQL Server driver - older version for better compatibility
+#pyodbc==4.0.39  # SQL Server driver - older version for better compatibility
 cx_Oracle==8.3.0  # Oracle database driver
 
 # AI Models
