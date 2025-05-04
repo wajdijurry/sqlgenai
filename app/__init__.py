@@ -13,8 +13,21 @@ def create_app(config_name=None):
     # Load configuration
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
+
+    # Debug configuration
+    app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+
+    # App configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')   
     
-    app.config.from_object(f'config.{config_name.capitalize()}Config')
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['REMEMBER_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
     
     # Configure session to work across domains
     app.config['SESSION_COOKIE_SECURE'] = False
@@ -34,7 +47,6 @@ def create_app(config_name=None):
     app.config['DEEPSEEK_MODEL'] = os.environ.get('DEEPSEEK_MODEL', 'deepseek-chat')
     app.config['CLAUDE_3_OPUS_API_KEY'] = os.environ.get('CLAUDE_3_OPUS_API_KEY')
     app.config['CLAUDE_3_OPUS_MODEL'] = os.environ.get('CLAUDE_3_OPUS_MODEL', 'claude-3-opus-20240229')
-    app.config['ENABLE_AI_CACHE'] = os.environ.get('ENABLE_AI_CACHE', 'true').lower() == 'true'
     
     # Redis configuration
     app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
