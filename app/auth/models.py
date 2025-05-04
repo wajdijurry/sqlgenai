@@ -1,12 +1,10 @@
-from app.utils.db_init import db
-from app import login_manager
+from app.extensions import db
+from app.extensions import login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import uuid
 from app.utils.soft_delete import SoftDeleteMixin
-from app.utils.db_init import db
-from app import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
