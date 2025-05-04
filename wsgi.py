@@ -16,14 +16,6 @@ print(f"File exists: {env_path.exists()}")
 print("Loading environment variables from .env file")
 load_dotenv(dotenv_path=str(env_path), verbose=True)
 
-# Debug: Print all environment variables (excluding sensitive ones)
-print("Environment variables after loading .env:")
-for key in sorted(os.environ.keys()):
-    if key not in ['SECRET_KEY', 'DATABASE_URL', 'STRIPE_SECRET_KEY', 'OPENAI_API_KEY', 'GOOGLE_CLIENT_SECRET']:
-        print(f"  {key}={os.environ.get(key)}")
-    else:
-        print(f"  {key}=*****")
-
 from app import create_app
 application = create_app()
 
