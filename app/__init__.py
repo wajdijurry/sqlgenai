@@ -6,6 +6,9 @@ from datetime import timedelta
 from flask import Flask, jsonify
 from flask_login import LoginManager
 
+# Import database instance directly
+from app.utils.db_init import db, migrate
+
 # Initialize extensions
 login_manager = LoginManager()
 
@@ -138,8 +141,15 @@ def create_app(config_name=None):
     
     # Initialize database with soft delete functionality
     from app.utils.db_init import init_db
+    
+    # Important: Initialize db before any db-related operations
+    db.init_app(app)
+    migrate.init_app(app, db)
+    
     with app.app_context():
+        # Initialize the rest of the database components
         init_db(app)
+        app.logger.info("Database initialized successfully")
         
     # Initialize Redis cache if enabled
     if app.config.get('REDIS_CACHE_ENABLED', True):
