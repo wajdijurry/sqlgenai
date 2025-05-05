@@ -57,35 +57,18 @@ export const getSubscription = withCache(fetchSubscription, {
  * @returns {Promise} - Promise with plans data
  */
 const fetchSubscriptionPlans = async () => {
-  try {
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      console.error('No authentication token available');
-      throw { message: 'Authentication required' };
-    }
-    
+  try {    
     console.log('Fetching subscription plans from server');
     const response = await axios.get(`${API_URL}/plans`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      },
-      withCredentials: true
+      }
     });
     
     return response.data.plans;
   } catch (error) {
     console.error('Error getting subscription plans:', error);
     console.error('Error response:', error.response?.data);
-    
-    // If authentication error, redirect to login
-    if (error.response?.status === 401) {
-      console.log('Authentication error, redirecting to login');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
     
     throw error.response?.data || { message: 'Failed to get subscription plans' };
   }
