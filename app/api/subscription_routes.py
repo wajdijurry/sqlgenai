@@ -210,7 +210,6 @@ def get_subscription():
     })
 
 @api_bp.route('/subscription/plans', methods=['GET'])
-@token_required
 def get_subscription_plans():
     """Get available subscription plans with can_select flag based on user's current subscription"""
     plans = SubscriptionPlan.query.all()
