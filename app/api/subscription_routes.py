@@ -214,17 +214,25 @@ def get_subscription_plans():
     """Get available subscription plans with can_select flag based on user's current subscription"""
     plans = SubscriptionPlan.query.all()
     
-    # Get current user from request object (set by token_required decorator)
-    current_user = request.current_user
-    
-    # Check user's subscription
-    current_subscription = None
+    # Check if user is authenticated
     current_plan = None
     
-    current_subscription = Subscription.query.filter_by(user_id=current_user.id).first()
-    if current_subscription:
-        current_plan = SubscriptionPlan.query.filter_by(plan_id=current_subscription.plan_id).first()
-        print(f"Found current plan: {current_plan.plan_id} with price {current_plan.monthly_price}")
+    # Get authentication token from header
+    auth_header = request.headers.get('Authorization')
+    
+    # If user is authenticated, get their current plan
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        user = User.query.filter_by(auth_token=token).first()
+        
+        if user:
+            # User is authenticated, check their subscription
+            current_subscription = Subscription.query.filter_by(user_id=user.id).first()
+            if current_subscription:
+                current_plan = SubscriptionPlan.query.filter_by(plan_id=current_subscription.plan_id).first()
+                logger.info(f"Found current plan for user {user.id}: {current_plan.plan_id} with price {current_plan.monthly_price}")
+    else:
+        logger.info("User is not authenticated, showing all plans as selectable")
     
     plan_list = []
     for plan in plans:
